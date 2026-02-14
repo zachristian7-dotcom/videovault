@@ -2,8 +2,7 @@
 <html>
 <head>
     <title>VideoVault</title>
-    <!-- Correct Flask static CSS link -->
-    <link rel="stylesheet" href="static/style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -37,13 +36,14 @@
     {% for video in videos %}
     <div class="card">
 
-        <img class="thumb" src="{{ url_for('static', filename='thumbs/' + video.thumbnail) }}"
-             onclick="playVideo('{{ video.filename }}')">
+        <img class="thumb"
+             src="{{ video.thumb_url }}"
+             onclick="playVideo('{{ video.public_id }}')">
 
         <div style="padding:10px;">
-            <video id="player-{{ video.filename }}" class="video-player" controls style="display:none;"
-                   onplay="addView('{{ video.filename }}')">
-                <source src="{{ url_for('static', filename='uploads/' + video.filename) }}">
+            <video id="player-{{ video.public_id }}" class="video-player" controls style="display:none;"
+                   onplay="addView('{{ video.public_id }}')">
+                <source src="{{ video.video_url }}">
             </video>
         </div>
 
@@ -51,15 +51,13 @@
         <div class="desc">{{ video.description }}</div>
 
         <div class="stats">
-            <form method="POST" action="/heart/{{ video.filename }}">
+            <form method="POST" action="/heart/{{ video.public_id }}">
                 <button class="heart-btn">❤️ {{ video.hearts }}</button>
             </form>
 
             <div>👁 {{ video.views }}</div>
 
-            <a class="download-btn" href="/download/{{ video.filename }}">⬇ Download</a>
-
-            <form method="POST" action="/delete/{{ video.filename }}"
+            <form method="POST" action="/delete/{{ video.public_id }}"
                   onsubmit="return confirm('Delete this video?');">
                 <button class="delete-btn">🗑</button>
             </form>
@@ -77,12 +75,13 @@
 </div>
 
 <script>
-    function addView(filename) {
-        fetch("/view/" + filename, { method: "POST" });
+    function addView(public_id) {
+        fetch("/view/" + public_id, { method: "POST" });
     }
 
-    function playVideo(filename) {
-        let player = document.getElementById("player-" + filename);
+    function playVideo(public_id) {
+        let player = document.getElementById("player-" + public_id);
+
         if (player.style.display === "none") {
             player.style.display = "block";
             player.play();
