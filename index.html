@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VideoVault</title>
+    <!-- Correct Flask static CSS link -->
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+
+<h1>🎥 VideoVault</h1>
+
+<p style="text-align:center;">
+    <a href="/upload">⬆ Upload</a>
+</p>
+
+<form method="GET" action="/" class="topbar">
+    <input type="text" name="search" placeholder="Search..." value="{{ search }}">
+
+    <select name="sort">
+        <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest</option>
+        <option value="oldest" {% if sort == "oldest" %}selected{% endif %}>Oldest</option>
+        <option value="views" {% if sort == "views" %}selected{% endif %}>Most Views</option>
+        <option value="hearts" {% if sort == "hearts" %}selected{% endif %}>Most Hearts</option>
+    </select>
+
+    <button type="submit">Apply</button>
+</form>
+
+<div style="text-align:center; margin-top:15px;">
+    <h2>📁 Playlists</h2>
+    {% for pl in playlists %}
+        <a href="/playlist/{{ pl }}" style="margin:10px; font-size:18px;">📂 {{ pl }}</a>
+    {% endfor %}
+</div>
+
+<div class="grid">
+    {% for video in videos %}
+    <div class="card">
+
+        <img class="thumb" src="{{ url_for('static', filename='thumbs/' + video.thumbnail) }}"
+             onclick="playVideo('{{ video.filename }}')">
+
+        <div style="padding:10px;">
+            <video id="player-{{ video.filename }}" class="video-player" controls style="display:none;"
+                   onplay="addView('{{ video.filename }}')">
+                <source src="{{ url_for('static', filename='uploads/' + video.filename) }}">
+            </video>
+        </div>
+
+        <div class="title">{{ video.title }}</div>
+        <div class="desc">{{ video.description }}</div>
+
+        <div class="stats">
+            <form method="POST" action="/heart/{{ video.filename }}">
+                <button class="heart-btn">❤️ {{ video.hearts }}</button>
+            </form>
+
+            <div>👁 {{ video.views }}</div>
+
+            <a class="download-btn" href="/download/{{ video.filename }}">⬇ Download</a>
+
+            <form method="POST" action="/delete/{{ video.filename }}"
+                  onsubmit="return confirm('Delete this video?');">
+                <button class="delete-btn">🗑</button>
+            </form>
+        </div>
+
+        <div class="date">
+            Uploaded: {{ video.pretty_date }}
+            {% if video.playlist %}
+                | Playlist: <a href="/playlist/{{ video.playlist }}">{{ video.playlist }}</a>
+            {% endif %}
+        </div>
+
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    function addView(filename) {
+        fetch("/view/" + filename, { method: "POST" });
+    }
+
+    function playVideo(filename) {
+        let player = document.getElementById("player-" + filename);
+        if (player.style.display === "none") {
+            player.style.display = "block";
+            player.play();
+        } else {
+            player.pause();
+            player.style.display = "none";
+        }
+    }
+</script>
+
+</body>
+</html>
